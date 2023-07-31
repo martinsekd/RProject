@@ -130,7 +130,7 @@ hdi_list = hdi_list[-1,]
 
 -   Countries from lowest to highest immortality
 
--    Area of countries
+-    Categories of countries
 
 -   Comparison of Low / medium / high income countries with
 
