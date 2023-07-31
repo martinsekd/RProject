@@ -6,6 +6,8 @@ output:
 date: "2023-07-31"
 ---
 
+## Setup libraries and folders
+
 ```{r setup, include=FALSE}
 # Remove  all objects from R memory 
 rm(list=ls())  
@@ -75,15 +77,63 @@ Webscraping webpage to get areas, unions and continents out
 library('rvest')
 
 #Specifying the url for desired website to be scraped
-url <- 'https://www.worldometers.info/geography/alphabetical-list-of-countries/'
+url <- 'https://www.iban.com/country-codes'
 
 
 #Reading the HTML code from the website
 webpage <- read_html(url)
 
-drivers_F1 <- html_element(webpage, "table.Country-Codes-A-C") %>%
+drivers_F1 <- html_element(webpage, "table.table") %>%
   html_table()
-drivers_F1$Country
+
+sum1 = sum(data2$`Country Code` %in% drivers_F1$`Alpha-3 code`)
+#webpage %>% html_elements("table#Country-Codes-A-C")
+#drivers_F1$Country
+data3=data2[!data2$`Country Code` %in% drivers_F1$`Alpha-3 code`,]
+data3=data3[data3$`Country Code`!="XKX",]
+
+data_categories=data3
+
+```
+
+HDI list:
+
+```{r}
+#Loading the rvest package
+library('rvest')
+
+#Specifying the url for desired website to be scraped
+url <- 'https://en.wikipedia.org/wiki/List_of_countries_by_Human_Development_Index'
+
+
+#Reading the HTML code from the website
+webpage <- read_html(url)
+
+drivers_F1 <- html_element(webpage, "table.sortable") %>%
+  html_table()
+
+hdi_list = drivers_F1[,c("Rank","Nation")]
+hdi_list = hdi_list[-1,]
+#webpage %>% html_elements("table#Country-Codes-A-C")
+#drivers_F1$Country
+#data3=data2[!data2$`Country Code` %in% drivers_F1$`Alpha-3 code`,]
+#data3=data3[data3$`Country Code`!="XKX",]
+
+#data_categories=data3
 ```
 
 ## Analytics of data
+
+-   Connection between immortality and HDI
+
+-   Developing over time
+
+-   Countries from lowest to highest immortality
+
+-    Area of countries
+
+-   Comparison of Low / medium / high income countries with
+
+plots:
+
+-   Map with the locations of the world countries'
