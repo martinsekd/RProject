@@ -1,0 +1,89 @@
+---
+title: "RprojectScript"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-07-31"
+---
+
+```{r setup, include=FALSE}
+# Remove  all objects from R memory 
+rm(list=ls())  
+
+# Set a path to the library containing packages
+.libPaths("C:/Computerteknologi/10_semester/Rcourse")
+.libPaths()
+
+
+# Load selected packages# 
+pack<-c("car","sandwich","lmtest","RColorBrewer","mgcv","foreign","xtable"
+        ,"AER","stargazer", "MASS")
+
+lapply(pack, require, character.only=T)
+
+# Check the working path
+getwd()
+
+# Specify  paths
+getwd()
+
+# Set working path
+data_path<-"C:/Computerteknologi/10_semester/Rcourse/project/data"
+data_graph <-"C:/Computerteknologi/10_semester/Rcourse/project/graph"
+data_results <-"C:/Computerteknologi/10_semester/Rcourse/project/result"
+data_scripts <-"C:/Computerteknologi/10_semester/Rcourse/project/script"
+setwd(data_path)
+
+#Check the directory
+dir()
+
+data = read.csv("mortality2.csv",header = FALSE,skip = 0)
+
+
+```
+
+## Preprocessing of data
+
+```{r}
+
+data_countries = data[!grepl("exclud",data$V1),]
+data_countries = data[!grepl("income",data$V1),]
+
+data_income = data[grepl("income",data$V1),]
+data2 = data_countries[-(1:3),-1]
+
+
+
+rownames(data2) = data_countries[-(1:3),1]
+colnames(data2) = data_countries[3,-(1:1)] 
+
+
+data2 = data2[,-4:-33]
+data2 = data2[,-35:-37]
+data2 = data2[rowSums(is.na(data2))<5,]
+
+subset(data2,)
+
+#data2 = data[,-4:-33]
+
+```
+
+Webscraping webpage to get areas, unions and continents out
+
+```{r}
+#Loading the rvest package
+library('rvest')
+
+#Specifying the url for desired website to be scraped
+url <- 'https://www.worldometers.info/geography/alphabetical-list-of-countries/'
+
+
+#Reading the HTML code from the website
+webpage <- read_html(url)
+
+drivers_F1 <- html_element(webpage, "table.Country-Codes-A-C") %>%
+  html_table()
+drivers_F1$Country
+```
+
+## Analytics of data
