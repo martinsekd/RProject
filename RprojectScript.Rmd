@@ -89,11 +89,12 @@ drivers_F1 <- html_element(webpage, "table.table") %>%
 sum1 = sum(data2$`Country Code` %in% drivers_F1$`Alpha-3 code`)
 #webpage %>% html_elements("table#Country-Codes-A-C")
 #drivers_F1$Country
+
 data3=data2[!data2$`Country Code` %in% drivers_F1$`Alpha-3 code`,]
 data3=data3[data3$`Country Code`!="XKX",]
 
 data_categories=data3
-
+data_countries = data2[data2$`Country Code` %in% drivers_F1$`Alpha-3 code`,]
 ```
 
 HDI list:
@@ -130,10 +131,59 @@ hdi_list = hdi_list[-1,]
 
 -   Countries from lowest to highest immortality
 
--    Categories of countries
+-   Categories of countries
 
 -   Comparison of Low / medium / high income countries with
 
 plots:
 
 -   Map with the locations of the world countries'
+
+```{r}
+immortal1990 = data_countries[,4]
+immortal2020 = data_countries[,34]
+
+barplot(sort(immortal1990))
+barplot(sort(immortal2020))
+df = data.frame(rownames(data_countries),immortal1990,immortal2020)
+#barplot(df, col = c("#993404", "#FB6A4A"),height=immortal1990)
+
+#library(ggplot2)
+#ggplot(df) +
+#  aes(x = df$rownames.data_countries.) +
+#  geom_col(aes(y = df$immortal1990, fill = "total"))+
+#  geom_col(aes(y = df$immortal2020, fill = "ui"))+
+#  labs(x=NULL, y = "Number of papers") +
+#  scale_fill_manual(values = c(immortal1990 = "grey", immortal2020 = #"dodgerblue4")) +
+#  theme_bw()+
+#  theme(panel.border = element_blank(), panel.grid.major = #element_blank(),
+#        panel.grid.minor = element_blank(), axis.line = element_line#(colour = "black"))
+
+
+sortedImmortal=df[order(df$immortal2020),]
+headAndTail= head(sortedImmortal,5)
+headAndTail = rbind(headAndTail,tail(sortedImmortal,5))
+midpts = barplot(headAndTail$immortal2020)#,names.arg=headAndTail$rownames.data_countries.)
+
+library(grid)
+library(gridBase)
+vps <- baseViewports()
+pushViewport(vps$inner, vps$figure, vps$plot)
+
+grid.text(headAndTail$rownames.data_countries.,
+    x = unit(midpts, "native"), y=unit(-1, "lines"),
+    just="right", rot=50)
+```
+
+Connection between HDI and immortality
+
+```{r}
+matchHdiList = hdi_list[hdi_list$Nation %in% rownames(data_countries),]
+matchDatacountries = data_countries[rownames(data_countries) %in% hdi_list$Nation,]
+
+
+matchHdiList = matchHdiList[order(matchHdiList$Nation),]
+matchDatacountries = matchDatacountries[order(rownames(matchDatacountries)),]
+
+plot(matchHdiList$Rank,matchDatacountries[,34],xlab = "Countries' HDI ranking (1 = highest human development)",ylab = "Mortality rate, infant (per 1,000 live births)")
+```
