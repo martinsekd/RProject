@@ -65,17 +65,17 @@ data2 = data2[,-4:-33]
 data2 = data2[,-35:-37]
 data2 = data2[rowSums(is.na(data2))<5,]
 
-data2 = data_countries2[-(1:3),-1]
+data3 = data_countries[-(1:3),-1]
 
 
 
-rownames(data2) = data_countries2[-(1:3),1]
-colnames(data2) = data_countries2[3,-(1:1)] 
+rownames(data3) = data_countries[-(1:3),1]
+colnames(data3) = data_countries[3,-(1:1)] 
 
 
 data3 = data3[,-4:-33]
 data3 = data3[,-35:-37]
-data3 = data3[rowSums(is.na(data2))<5,]
+data3 = data3[rowSums(is.na(data3))<5,]
 
 subset(data2,)
 
@@ -181,13 +181,13 @@ sortedImmortal=df[order(df$immortal1990),]
 headAndTail= head(sortedImmortal,5)
 headAndTail = rbind(headAndTail,tail(sortedImmortal,5))
 
-midpts = barplot(headAndTail$immortal1990)
+midpts = barplot(headAndTail$immortal1990,ylim = c(0,180))
 
 vps <- baseViewports()
 pushViewport(vps$inner, vps$figure, vps$plot)
 
 grid.text(headAndTail$rownames.data_countries.,
-    x = unit(midpts, "native"), y=unit(-1, "lines"),
+    x = unit(midpts, "native"), y=unit(-2, "lines"),
     just="right", rot=50)
 
 #2020
@@ -195,13 +195,13 @@ sortedImmortal=df[order(df$immortal2020),]
 headAndTail= head(sortedImmortal,5)
 headAndTail = rbind(headAndTail,tail(sortedImmortal,5))
 
-midpts = barplot(headAndTail$immortal2020)
+midpts = barplot(headAndTail$immortal2020,ylim = c(0,180))
 
 vps <- baseViewports()
 pushViewport(vps$inner, vps$figure, vps$plot)
 
 grid.text(headAndTail$rownames.data_countries.,
-    x = unit(midpts, "native"), y=unit(-1, "lines"),
+    x = unit(midpts, "native"), y=unit(-2, "lines"),
     just="right", rot=50)
 
 ```
