@@ -40,9 +40,9 @@ setwd(data_path)
 dir()
 
 data = read.csv("mortality2.csv",header = FALSE,skip = 0)
-
-
 ```
+
+The mortality rate for infant is the used dataset in this project which is assigned to the variable data above. The dataset come from data.worldbank.org. URL: <https://data.worldbank.org/indicator/SP.DYN.IMRT.IN?view=chart>
 
 ## Preprocessing of data
 
