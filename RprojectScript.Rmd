@@ -236,3 +236,27 @@ theMap2020 <- mapCountryData( joinData, nameColumnToPlot="immortal2020", addLege
 
 #do.call( addMapLegend, c(theMap2020, legendWidth=1, legendMar = 2))
 ```
+
+### Countries development from 1990 to 2020 (loop)
+
+```{r}
+
+N = nrow(sortedImmortal)
+sortedImmortal$DevPercentage = NA
+for (i in 1:N) {
+  diff = (sortedImmortal$immortal2020[i]-sortedImmortal$immortal1990[i])/sortedImmortal$immortal1990[i]
+  sortedImmortal$DevPercentage[i] = diff
+}
+
+min_country = sortedImmortal[which.min(sortedImmortal$DevPercentage),]
+
+max_country = sortedImmortal[which.max(sortedImmortal$DevPercentage),]
+
+min_in_percentage = format(round(100*min_country$DevPercentage, 2), nsmall = 2)
+
+max_in_percentage = format(round(100*max_country$DevPercentage, 2), nsmall = 2)
+
+print(paste("Highest reducing is ",min_country$rownames.data_countries.," with ",min_in_percentage," %"))
+
+print(paste("Lowest reducing is ",max_country$rownames.data_countries.," with ",max_in_percentage," %"))
+```
