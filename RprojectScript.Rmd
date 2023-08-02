@@ -50,22 +50,37 @@ data = read.csv("mortality2.csv",header = FALSE,skip = 0)
 
 data_countries = data[!grepl("exclud",data$V1),]
 data_countries = data[!grepl("income",data$V1),]
+data_countries2 = data
 
 data_income = data[grepl("income",data$V1),]
-data2 = data_countries[-(1:3),-1]
+data2 = data_countries2[-(1:3),-1]
 
 
 
-rownames(data2) = data_countries[-(1:3),1]
-colnames(data2) = data_countries[3,-(1:1)] 
+rownames(data2) = data_countries2[-(1:3),1]
+colnames(data2) = data_countries2[3,-(1:1)] 
 
 
 data2 = data2[,-4:-33]
 data2 = data2[,-35:-37]
 data2 = data2[rowSums(is.na(data2))<5,]
 
+data2 = data_countries2[-(1:3),-1]
+
+
+
+rownames(data2) = data_countries2[-(1:3),1]
+colnames(data2) = data_countries2[3,-(1:1)] 
+
+
+data3 = data3[,-4:-33]
+data3 = data3[,-35:-37]
+data3 = data3[rowSums(is.na(data2))<5,]
+
 subset(data2,)
 
+continentCodes = c("EAP","ECA","LAC","MNA","SSA","EAS","ECS","LCN","MEA","SSF")
+continents = data2[data2$`Country Code` %in% continentCodes,]
 #data2 = data[,-4:-33]
 
 ```
@@ -158,21 +173,37 @@ df = data.frame(rownames(data_countries),immortal1990,immortal2020)
 #  theme_bw()+
 #  theme(panel.border = element_blank(), panel.grid.major = #element_blank(),
 #        panel.grid.minor = element_blank(), axis.line = element_line#(colour = "black"))
-
-
-sortedImmortal=df[order(df$immortal2020),]
-headAndTail= head(sortedImmortal,5)
-headAndTail = rbind(headAndTail,tail(sortedImmortal,5))
-midpts = barplot(headAndTail$immortal2020)#,names.arg=headAndTail$rownames.data_countries.)
-
 library(grid)
 library(gridBase)
+
+#1990
+sortedImmortal=df[order(df$immortal1990),]
+headAndTail= head(sortedImmortal,5)
+headAndTail = rbind(headAndTail,tail(sortedImmortal,5))
+
+midpts = barplot(headAndTail$immortal1990)
+
 vps <- baseViewports()
 pushViewport(vps$inner, vps$figure, vps$plot)
 
 grid.text(headAndTail$rownames.data_countries.,
     x = unit(midpts, "native"), y=unit(-1, "lines"),
     just="right", rot=50)
+
+#2020
+sortedImmortal=df[order(df$immortal2020),]
+headAndTail= head(sortedImmortal,5)
+headAndTail = rbind(headAndTail,tail(sortedImmortal,5))
+
+midpts = barplot(headAndTail$immortal2020)
+
+vps <- baseViewports()
+pushViewport(vps$inner, vps$figure, vps$plot)
+
+grid.text(headAndTail$rownames.data_countries.,
+    x = unit(midpts, "native"), y=unit(-1, "lines"),
+    just="right", rot=50)
+
 ```
 
 Connection between HDI and immortality
@@ -186,4 +217,22 @@ matchHdiList = matchHdiList[order(matchHdiList$Nation),]
 matchDatacountries = matchDatacountries[order(rownames(matchDatacountries)),]
 
 plot(matchHdiList$Rank,matchDatacountries[,34],xlab = "Countries' HDI ranking (1 = highest human development)",ylab = "Mortality rate, infant (per 1,000 live births)")
+```
+
+World maps plots:
+
+```{r}
+library(rworldmap)
+
+
+#populationData = data.frame()
+joinData <- joinCountryData2Map( sortedImmortal,
+                                 joinCode = "NAME",
+                                 nameJoinColumn = "rownames.data_countries.")
+theMap1990 <- mapCountryData( joinData, nameColumnToPlot="immortal1990", addLegend=TRUE,catMethod = seq(1, 180, len = 20))
+theMap2020 <- mapCountryData( joinData, nameColumnToPlot="immortal2020", addLegend=TRUE,catMethod = seq(1, 180, len = 20))
+#do.call( addMapLegend, c(theMap1990, legendWidth=1, legendMar = 2))
+
+
+#do.call( addMapLegend, c(theMap2020, legendWidth=1, legendMar = 2))
 ```
