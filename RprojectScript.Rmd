@@ -9,36 +9,34 @@ date: "2023-07-31"
 ## Setup libraries and folders
 
 ```{r setup, include=FALSE}
-# Remove  all objects from R memory 
+# Remove  all the objects from environment 
 rm(list=ls())  
 
-# Set a path to the library containing packages
+# Set the path to place with packages
 .libPaths("C:/Computerteknologi/10_semester/Rcourse")
 .libPaths()
 
 
-# Load selected packages# 
+# Load the selected packages 
 pack<-c("car","sandwich","lmtest","RColorBrewer","mgcv","foreign","xtable"
         ,"AER","stargazer", "MASS")
 
 lapply(pack, require, character.only=T)
 
-# Check the working path
+# get the working path
 getwd()
 
-# Specify  paths
-getwd()
-
-# Set working path
+# Set all the working paths
 data_path<-"C:/Computerteknologi/10_semester/Rcourse/project/data"
 data_graph <-"C:/Computerteknologi/10_semester/Rcourse/project/graph"
 data_results <-"C:/Computerteknologi/10_semester/Rcourse/project/result"
 data_scripts <-"C:/Computerteknologi/10_semester/Rcourse/project/script"
 setwd(data_path)
 
-#Check the directory
+#get directory
 dir()
 
+#get dataset into data
 data = read.csv("mortality2.csv",header = FALSE,skip = 0)
 ```
 
@@ -48,88 +46,96 @@ The mortality rate for infant is the used dataset in this project which is assig
 
 ```{r}
 
+#get all the rows of countries which name not include income og exclude
 data_countries = data[!grepl("exclud",data$V1),]
 data_countries = data[!grepl("income",data$V1),]
-data_countries2 = data
+
+#data of areas (include and exclude income)
+data_areas = data
+
 
 data_income = data[grepl("income",data$V1),]
-data2 = data_countries2[-(1:3),-1]
+
+data_all = data_areas[-(1:3),-1]
 
 
 
-rownames(data2) = data_countries2[-(1:3),1]
-colnames(data2) = data_countries2[3,-(1:1)] 
+rownames(data_all) = data_areas[-(1:3),1]
+colnames(data_all) = data_areas[3,-(1:1)] 
 
 
-data2 = data2[,-4:-33]
-data2 = data2[,-35:-37]
-data2 = data2[rowSums(is.na(data2))<5,]
+data_all = data_all[,-4:-33]
+data_all = data_all[,-35:-37]
+data_all = data_all[rowSums(is.na(data_all))<5,]
 
-data3 = data_countries[-(1:3),-1]
+data_countries2 = data_countries[-(1:3),-1]
 
-
-
-rownames(data3) = data_countries[-(1:3),1]
-colnames(data3) = data_countries[3,-(1:1)] 
+rownames(data_countries2) = data_countries[-(1:3),1]
+colnames(data_countries2) = data_countries[3,-(1:1)] 
 
 
-data3 = data3[,-4:-33]
-data3 = data3[,-35:-37]
-data3 = data3[rowSums(is.na(data3))<5,]
+data_countries2 = data_countries2[,-4:-33]
+data_countries2 = data_countries2[,-35:-37]
+data_countries2 = data_countries2[rowSums(is.na(data_countries2))<5,]
 
-subset(data2,)
 
 continentCodes = c("EAP","ECA","LAC","MNA","SSA","EAS","ECS","LCN","MEA","SSF")
-continents = data2[data2$`Country Code` %in% continentCodes,]
-#data2 = data[,-4:-33]
+
+data_continents = data_all[data_all$`Country Code` %in% continentCodes,]
 
 ```
 
-Webscraping webpage to get areas, unions and continents out
+Webscraping webpage to get areas, unions and continents out. Only countries will be in country dataset
 
 ```{r}
 #Loading the rvest package
 library('rvest')
 
-#Specifying the url for desired website to be scraped
+#url to be webscaped
 url <- 'https://www.iban.com/country-codes'
 
 
-#Reading the HTML code from the website
+#Read HTML code site
 webpage <- read_html(url)
 
-drivers_F1 <- html_element(webpage, "table.table") %>%
+#get the table data on page
+country_table <- html_element(webpage, "table.table") %>%
   html_table()
 
-sum1 = sum(data2$`Country Code` %in% drivers_F1$`Alpha-3 code`)
+sum1 = sum(data_all$`Country Code` %in% country_table$`Alpha-3 code`)
 #webpage %>% html_elements("table#Country-Codes-A-C")
 #drivers_F1$Country
 
-data3=data2[!data2$`Country Code` %in% drivers_F1$`Alpha-3 code`,]
-data3=data3[data3$`Country Code`!="XKX",]
+data_countries2=data_all[!data_all$`Country Code` %in% country_table$`Alpha-3 code`,]
 
-data_categories=data3
-data_countries = data2[data2$`Country Code` %in% drivers_F1$`Alpha-3 code`,]
+data_countries2=data_countries2[data_countries2$`Country Code`!="XKX",]
+
+data_categories=data_countries2
+data_countries = data_all[data_all$`Country Code` %in% country_table$`Alpha-3 code`,]
 ```
 
-HDI list:
+Webscraping to get the HDI list:
 
 ```{r}
-#Loading the rvest package
+#Load the rvest package
 library('rvest')
 
-#Specifying the url for desired website to be scraped
+#url to be webscaped
 url <- 'https://en.wikipedia.org/wiki/List_of_countries_by_Human_Development_Index'
 
 
 #Reading the HTML code from the website
 webpage <- read_html(url)
 
-drivers_F1 <- html_element(webpage, "table.sortable") %>%
+#get the table data on page
+hdi_table <- html_element(webpage, "table.sortable") %>%
   html_table()
 
-hdi_list = drivers_F1[,c("Rank","Nation")]
+hdi_list = hdi_table[,c("Rank","Nation")]
+
+#get rid of first row containing column titles
 hdi_list = hdi_list[-1,]
+
 #webpage %>% html_elements("table#Country-Codes-A-C")
 #drivers_F1$Country
 #data3=data2[!data2$`Country Code` %in% drivers_F1$`Alpha-3 code`,]
@@ -241,13 +247,23 @@ theMap2020 <- mapCountryData( joinData, nameColumnToPlot="immortal2020", addLege
 
 ```{r}
 
+#number of rows in immortal dataframe
 N = nrow(sortedImmortal)
+
+#by standard all the values in the column is set to NA
 sortedImmortal$DevPercentage = NA
+
+#put in the development from 1990 to 2020 in each row
 for (i in 1:N) {
   diff = (sortedImmortal$immortal2020[i]-sortedImmortal$immortal1990[i])/sortedImmortal$immortal1990[i]
-  sortedImmortal$DevPercentage[i] = diff
+  
+  #if(diff < -0.2) {
+  #  sortedImmortal$DevPercentage[i] = diff
+  #}
+  
 }
 
+#
 min_country = sortedImmortal[which.min(sortedImmortal$DevPercentage),]
 
 max_country = sortedImmortal[which.max(sortedImmortal$DevPercentage),]
