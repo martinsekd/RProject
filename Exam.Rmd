@@ -1,0 +1,187 @@
+---
+title: "RprojectScript"
+output:
+  html_document: default
+  pdf_document: default
+date: "2023-07-31"
+---
+
+## Setup libraries and folders
+```{r setup, include=FALSE}
+# Remove  all objects from R memory 
+rm(list=ls())  
+
+# Set a path to the library containing packages
+.libPaths("C:/Computerteknologi/10_semester/Rcourse")
+.libPaths()
+
+
+# Load selected packages# 
+pack<-c("car","sandwich","lmtest","RColorBrewer","mgcv","foreign","xtable"
+        ,"AER","stargazer", "M
+        S")
+
+lapply(pack, require, character.only=T)
+
+# Check the working path
+getwd()
+
+# Specify  paths
+getwd()
+
+# Set working path
+data_path<-"C:/Computerteknologi/10_semester/Rcourse/project/data"
+data_graph <-"C:/Computerteknologi/10_semester/Rcourse/project/graph"
+data_results <-"C:/Computerteknologi/10_semester/Rcourse/project/result"
+data_scripts <-"C:/Computerteknologi/10_semester/Rcourse/project/script"
+setwd(data_path)
+
+#Check the directory
+dir()
+
+data = read.csv("mortality2.csv",header = FALSE,skip = 0)
+
+
+```
+
+## Preprocessing of data for looking at income 
+```{r}
+
+data = API_SP.DYN.IMRT.IN_DS2_en_csv_v2_5728798
+data_income <- data
+colnames(data_income) <- data[3,]
+data_income = data_income[grepl("income",data_income$`Country Name`),]
+data_income = data_income[!grepl("exc",data_income$`Country Name`),]
+
+rownames(data_income) = data_income$`Country Name`
+data_income2 = data_income[,-1]
+
+data_income2 = data_income2[,-4:-33]
+data_income2  = data_income2 [,-35:-37]
+
+```
+
+
+#Another preprocessing of data for income 
+```{r}
+library("dplyr")
+
+#Making a new dataframe, and filtering the rows out only containing information about the income 
+data_income <- data 
+data_income <- filter(data_income,  V1 %in% c("High income", 
+                                                            "Country Name", 
+                                                            "Low income", 
+                                                            "Lower middle income", 
+                                                            "Low & middle income",
+                                                            "Middle income",
+                                                            "Upper middle income"))
+
+#Transposing the dataframe to swap the column and rows. 
+data_income <- data.frame(t(data_income))
+
+#Deleting unwanted rows/columns with NA's. 
+data_income = data_income[-67:-68,]
+data_income = data_income[-2:-34,]
+
+#Changing the colnames and remvoing first column
+colnames(data_income) = data_income[1,]
+colnames(data_income)[1] = "Year"
+data_income = data_income[-1,]
+
+#Removing excssive digests for the colums 
+data_income$`Year` =  gsub("\\..*","",data_incomex$`Year`)
+
+```
+
+
+#Plotting
+```{r}
+library(ggplot2)
+library(MASS) 
+library(reshape2) 
+library(reshape)
+library(geomtextpath)
+
+#melt data frame into long format
+Plot_income <- melt(data_income,  id.vars = 'Year', variable.name = 'series')
+
+#The Year and Values, are both defined as characters. So this need to be changed
+is.character(Plot_income$value)
+is.character(Plot_income$Year)
+
+#Changing it to numeric
+Plot_income$Year <- as.numeric(Plot_income$`Year`)
+Plot_income$Value <- as.numeric(Plot_income$value)
+Plot_income =Plot_income[,c(-3)]
+
+
+#Plotting - two different ways
+
+ggplot(Plot_income, aes(Year, Value, colour = variable )) +
+  ggtitle("Mortality dependences on income") +
+  xlab("Year") + 
+  ylab("Mortality rate, infant (per 1,000 live births)") + 
+    geom_point() +
+  geom_line() 
+
+
+
+ggplot(Plot_income, aes(Year, Value, colour = variable )) +
+  ggtitle("Mortality dependences on income") +
+  xlab("Year") + 
+  ylab("Mortality rate, infant (per 1,000 live births)")  +
+  geom_textpath(
+     label = Plot_income$variable
+  ) +theme_bw() + 
+  theme(legend.position = "none")
+
+
+
+
+
+```
+
+
+#Income statistics and comparison 
+```{r}
+Sta_DF <- data.frame 
+
+#First making a new dataframe, only containg the data from years 1990 and 2020, to be able to see the difference between these two
+Sta_DF = Plot_income[Plot_income$Year %in% c('1990','2020'),]
+
+#To distingush the variable newme, we add the years to the variable neames 
+Sta_DF$con = paste(Sta_DF$variable, Sta_DF$Year)
+
+
+#Plotting the values for 1990 and 2020 for each of the incomes in a bar plot, to easily see the difference 
+q <- ggplot(Sta_DF, aes(x = con , y= Value,  colour = variable, fill = variable ))  + 
+         geom_bar(stat="identity") +
+    ggtitle("Mortality dependences on income") +
+  xlab("") + 
+  ylab("Mortality rate, infant (per 1,000 live births)") 
+ q + theme_bw() + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1), panel.border = element_blank()) 
+ 
+
+ 
+```
+
+
+```{r}
+
+library(ggpubr)
+
+#making t-test for each income group - using Welch two sample t-test, because we dont know id the population size is the same.
+
+t.test(Sta_DF$Value, c(1:2), mu=0)
+t.test(Sta_DF$Value, c(3:4), mu=0)
+t.test(Sta_DF$Value, c(5:6), mu=0)
+t.test(Sta_DF$Value, c(7:8), mu=0)
+t.test(Sta_DF$Value, c(9:10), mu=0)
+t.test(Sta_DF$Value, c(11:2), mu=0)
+
+#Here it is clear to see that all the p-values are below 0.05, meaning the reduction is significant. 
+
+
+```
+
+
