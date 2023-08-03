@@ -6,6 +6,10 @@ output:
 date: "2023-07-31"
 ---
 
+# Mortality rate of infants
+
+Made by Maja Brask, Andrea Riedel and Martin Krøjmand
+
 ## Setup libraries and folders
 
 ```{r setup, include=FALSE}
