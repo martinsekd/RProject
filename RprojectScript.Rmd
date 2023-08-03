@@ -162,11 +162,11 @@ library(gridBase)
 
 #1990
 #order the mortality to plot
-sortedImmortal=df[order(df$mortality1990),]
+sortedMortality=df[order(df$mortality1990),]
 
 #take out top 5 and bottom 5
-headAndTail= head(sortedImmortal,5)
-headAndTail = rbind(headAndTail,tail(sortedImmortal,5))
+headAndTail= head(sortedMortality,5)
+headAndTail = rbind(headAndTail,tail(sortedMortality,5))
 
 #produce the barplot
 midpts = barplot(headAndTail$mortality1990,ylim = c(0,180),main = "lowest and highest mortality rate in 1990")
@@ -182,9 +182,9 @@ grid.text(headAndTail$rownames.data_countries.,
     just="right", rot=50)
 
 #2020
-sortedImmortal=df[order(df$mortality2020),]
-headAndTail= head(sortedImmortal,5)
-headAndTail = rbind(headAndTail,tail(sortedImmortal,5))
+sortedMortality=df[order(df$mortality2020),]
+headAndTail= head(sortedMortality,5)
+headAndTail = rbind(headAndTail,tail(sortedMortality,5))
 
 #produce the barplot
 midpts = barplot(headAndTail$mortality2020,ylim = c(0,180),main = "lowest and highest mortality rate in 2020")
@@ -200,7 +200,7 @@ grid.text(headAndTail$rownames.data_countries.,
 
 ```
 
-Connection between HDI and immortality
+Connection between HDI and mortality
 
 ```{r}
 
@@ -227,7 +227,7 @@ library(rworldmap)
 
 
 #join country names to locations on map
-joinData <- joinCountryData2Map( sortedImmortal,
+joinData <- joinCountryData2Map( sortedMortality,
                                  joinCode = "NAME",
                                  nameJoinColumn = "rownames.data_countries.")
 #plot map for 1990
@@ -242,29 +242,29 @@ theMap2020 <- mapCountryData( joinData, nameColumnToPlot="mortality2020", addLeg
 
 ```{r}
 #change to shorter name
-names(sortedImmortal)[1]="Nation"
+names(sortedMortality)[1]="Nation"
 
 #number of rows in immortal dataframe
-N = nrow(sortedImmortal)
+N = nrow(sortedMortality)
 
 #by standard all the values in the column is set to NA
-sortedImmortal$DevPercentage = NA
+sortedMortality$DevPercentage = NA
 
 #put in the development from 1990 to 2020 in each row
 for (i in 1:N) {
   #calculate the relative difference between 1990 and 2020
-  diff = (sortedImmortal$mortality2020[i]-sortedImmortal$mortality1990[i])/sortedImmortal$mortality1990[i]
+  diff = (sortedMortality$mortality2020[i]-sortedMortality$mortality1990[i])/sortedMortality$mortality1990[i]
   
   #add to the dataframe
-  sortedImmortal$DevPercentage[i] = diff
+  sortedMortality$DevPercentage[i] = diff
   
 }
 
 #get the row with highest reducing in mortality rate
-min_country = sortedImmortal[which.min(sortedImmortal$DevPercentage),]
+min_country = sortedMortality[which.min(sortedMortality$DevPercentage),]
 
 #get the row with lowest reducing in mortality rate
-max_country = sortedImmortal[which.max(sortedImmortal$DevPercentage),]
+max_country = sortedMortality[which.max(sortedMortality$DevPercentage),]
 
 #convert to percentage
 min_in_percentage = format(round(100*min_country$DevPercentage, 2), nsmall = 2)
