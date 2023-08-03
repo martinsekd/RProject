@@ -19,7 +19,7 @@ rm(list=ls())
 
 # Load the selected packages 
 pack<-c("car","sandwich","lmtest","RColorBrewer","mgcv","foreign","xtable"
-        ,"AER","stargazer", "MASS")
+        ,"AER","stargazer", "MASS","rvest","grid","gridBase","rworldmap","dplyr","reshape2","reshape","geomtextpath","ggpubr")
 
 lapply(pack, require, character.only=T)
 
@@ -102,15 +102,16 @@ webpage <- read_html(url)
 country_table <- html_element(webpage, "table.table") %>%
   html_table()
 
-sum1 = sum(data_all$`Country Code` %in% country_table$`Alpha-3 code`)
-#webpage %>% html_elements("table#Country-Codes-A-C")
-#drivers_F1$Country
 
+
+#get only rows which is a country (based on the website)
 data_countries2=data_all[!data_all$`Country Code` %in% country_table$`Alpha-3 code`,]
 
 data_countries2=data_countries2[data_countries2$`Country Code`!="XKX",]
 
 data_categories=data_countries2
+
+#get only rows which is a country (based on the website)
 data_countries = data_all[data_all$`Country Code` %in% country_table$`Alpha-3 code`,]
 ```
 
@@ -131,20 +132,15 @@ webpage <- read_html(url)
 hdi_table <- html_element(webpage, "table.sortable") %>%
   html_table()
 
+#new dataframe with only hdi ranking and nation names
 hdi_list = hdi_table[,c("Rank","Nation")]
 
 #get rid of first row containing column titles
 hdi_list = hdi_list[-1,]
 
-#webpage %>% html_elements("table#Country-Codes-A-C")
-#drivers_F1$Country
-#data3=data2[!data2$`Country Code` %in% drivers_F1$`Alpha-3 code`,]
-#data3=data3[data3$`Country Code`!="XKX",]
-
-#data_categories=data3
 ```
 
-## Analytics of data
+## Analytics of data and plots
 
 -   Connection between immortality and HDI
 
@@ -161,53 +157,44 @@ plots:
 -   Map with the locations of the world countries'
 
 ```{r}
-immortal1990 = data_countries[,4]
-immortal2020 = data_countries[,34]
+#get  mortality for 1990 and 2020 in country dataset
+mortality1990 = data_countries[,4]
+mortality2020 = data_countries[,34]
 
-barplot(sort(immortal1990))
-barplot(sort(immortal2020))
-df = data.frame(rownames(data_countries),immortal1990,immortal2020)
-#barplot(df, col = c("#993404", "#FB6A4A"),height=immortal1990)
+#make barplot sorted by sort()
+barplot(sort(mortality1990),main = "The countries' mortality rate per 1000 infants in 1990 (sorted)",ylab = "mortality rate per 1000 infants")
+barplot(sort(mortality2020),main = "The countries' mortality rate per 1000 infants in 1990 (sorted)",ylab = "mortality rate per 1000 infants")
+df = data.frame(rownames(data_countries),mortality1990,mortality2020)
 
-#library(ggplot2)
-#ggplot(df) +
-#  aes(x = df$rownames.data_countries.) +
-#  geom_col(aes(y = df$immortal1990, fill = "total"))+
-#  geom_col(aes(y = df$immortal2020, fill = "ui"))+
-#  labs(x=NULL, y = "Number of papers") +
-#  scale_fill_manual(values = c(immortal1990 = "grey", immortal2020 = #"dodgerblue4")) +
-#  theme_bw()+
-#  theme(panel.border = element_blank(), panel.grid.major = #element_blank(),
-#        panel.grid.minor = element_blank(), axis.line = element_line#(colour = "black"))
 library(grid)
 library(gridBase)
 
 #1990
-sortedImmortal=df[order(df$immortal1990),]
+sortedImmortal=df[order(df$mortality1990),]
 headAndTail= head(sortedImmortal,5)
 headAndTail = rbind(headAndTail,tail(sortedImmortal,5))
 
-midpts = barplot(headAndTail$immortal1990,ylim = c(0,180))
+midpts = barplot(headAndTail$mortality1990,ylim = c(0,180),main = "lowest and highest mortality rate in 1990")
 
 vps <- baseViewports()
 pushViewport(vps$inner, vps$figure, vps$plot)
 
 grid.text(headAndTail$rownames.data_countries.,
-    x = unit(midpts, "native"), y=unit(-2, "lines"),
+    x = unit(midpts, "native"), y=unit(-1, "lines"),
     just="right", rot=50)
 
 #2020
-sortedImmortal=df[order(df$immortal2020),]
+sortedImmortal=df[order(df$mortality2020),]
 headAndTail= head(sortedImmortal,5)
 headAndTail = rbind(headAndTail,tail(sortedImmortal,5))
 
-midpts = barplot(headAndTail$immortal2020,ylim = c(0,180))
+midpts = barplot(headAndTail$mortality2020,ylim = c(0,180),main = "lowest and highest mortality rate in 2020")
 
 vps <- baseViewports()
 pushViewport(vps$inner, vps$figure, vps$plot)
 
 grid.text(headAndTail$rownames.data_countries.,
-    x = unit(midpts, "native"), y=unit(-2, "lines"),
+    x = unit(midpts, "native"), y=unit(-1, "lines"),
     just="right", rot=50)
 
 ```
@@ -215,14 +202,21 @@ grid.text(headAndTail$rownames.data_countries.,
 Connection between HDI and immortality
 
 ```{r}
+
+#match the countries in hdi_list with the ones in data_countries to ensure same length
 matchHdiList = hdi_list[hdi_list$Nation %in% rownames(data_countries),]
+
+#now match also for data_countries to ensure same rowlength
 matchDatacountries = data_countries[rownames(data_countries) %in% hdi_list$Nation,]
 
-
+#order both lists by nation name so each row match to same nation
 matchHdiList = matchHdiList[order(matchHdiList$Nation),]
+
 matchDatacountries = matchDatacountries[order(rownames(matchDatacountries)),]
 
-plot(matchHdiList$Rank,matchDatacountries[,34],xlab = "Countries' HDI ranking (1 = highest human development)",ylab = "Mortality rate, infant (per 1,000 live births)")
+#plot with hdi ranking on x-axis and mortality on y-axis
+#mortality for 2020 is used
+plot(matchHdiList$Rank,matchDatacountries[,34],xlab = "Countries' HDI ranking (1 = highest human development)",ylab = "Mortality rate, infant (per 1,000 live births)",main="Connection between countries' HDI and mortality")
 ```
 
 World maps plots:
@@ -231,16 +225,16 @@ World maps plots:
 library(rworldmap)
 
 
-#populationData = data.frame()
+#join country names to locations on map
 joinData <- joinCountryData2Map( sortedImmortal,
                                  joinCode = "NAME",
                                  nameJoinColumn = "rownames.data_countries.")
-theMap1990 <- mapCountryData( joinData, nameColumnToPlot="immortal1990", addLegend=TRUE,catMethod = seq(1, 180, len = 20))
-theMap2020 <- mapCountryData( joinData, nameColumnToPlot="immortal2020", addLegend=TRUE,catMethod = seq(1, 180, len = 20))
-#do.call( addMapLegend, c(theMap1990, legendWidth=1, legendMar = 2))
+#plot map for 1990
+theMap1990 <- mapCountryData( joinData, nameColumnToPlot="mortality1990", addLegend=TRUE,catMethod = seq(1, 180, len = 20),mapTitle = "Mortality in 1990")
 
+#plot map for 2020
+theMap2020 <- mapCountryData( joinData, nameColumnToPlot="mortality2020", addLegend=TRUE,catMethod = seq(1, 180, len = 20),mapTitle = "Mortality in 2020")
 
-#do.call( addMapLegend, c(theMap2020, legendWidth=1, legendMar = 2))
 ```
 
 ### Countries development from 1990 to 2020 (loop)
@@ -255,7 +249,7 @@ sortedImmortal$DevPercentage = NA
 
 #put in the development from 1990 to 2020 in each row
 for (i in 1:N) {
-  diff = (sortedImmortal$immortal2020[i]-sortedImmortal$immortal1990[i])/sortedImmortal$immortal1990[i]
+  diff = (sortedImmortal$mortality2020[i]-sortedImmortal$mortality1990[i])/sortedImmortal$mortality1990[i]
   
   #if(diff < -0.2) {
   #  sortedImmortal$DevPercentage[i] = diff
@@ -263,15 +257,18 @@ for (i in 1:N) {
   
 }
 
-#
+#get the row with highest reducing in mortality rate
 min_country = sortedImmortal[which.min(sortedImmortal$DevPercentage),]
 
+#get the row with lowest reducing in mortality rate
 max_country = sortedImmortal[which.max(sortedImmortal$DevPercentage),]
 
+#convert to percentage
 min_in_percentage = format(round(100*min_country$DevPercentage, 2), nsmall = 2)
 
 max_in_percentage = format(round(100*max_country$DevPercentage, 2), nsmall = 2)
 
+#print the results
 print(paste("Highest reducing is ",min_country$rownames.data_countries.," with ",min_in_percentage," %"))
 
 print(paste("Lowest reducing is ",max_country$rownames.data_countries.," with ",max_in_percentage," %"))
@@ -279,21 +276,7 @@ print(paste("Lowest reducing is ",max_country$rownames.data_countries.," with ",
 
 ## Preprocessing of data for looking at income
 
-```{r}
-#data = API_SP.DYN.IMRT.IN_DS2_en_csv_v2_5728798
-data_income <- data
-colnames(data_income) <- data[3,]
-data_income = data_income[grepl("income",data_income$`Country Name`),]
-data_income = data_income[!grepl("exc",data_income$`Country Name`),]
-
-rownames(data_income) = data_income$`Country Name`
-data_income2 = data_income[,-1]
-
-data_income2 = data_income2[,-4:-33]
-data_income2  = data_income2 [,-35:-37]
-```
-
-Another preprocessing of data for income
+Preprocessing of data for income
 
 ```{r}
 library("dplyr")
